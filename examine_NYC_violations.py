@@ -18,11 +18,13 @@ from statsmodels.graphics.api import interaction_plot, abline_plot
 from statsmodels.stats.anova import anova_lm
 
 
-if __name__="__main__":
+DIR = '/nyc-restaurant-violations/' #PUT YOUR DIRECTORY HERE
+
+if __name__=="__main__":
 
 
 	try:
-		dat = pd.read_csv('NYC_violations.csv')
+		dat = pd.read_csv(DIR+'output/NYC_violations.csv')
 	except:
 		e = Exception(""" please run create_NYC_violations.py 
 						and drop file in home dir""")

@@ -9,18 +9,15 @@ from datetime import datetime as dt
 
 import pandas as pd
 
-LOG = open('nyc_violation_benchmark.txt', 'w')
-sys.stdout = LOG
+DIR = '/nyc-restaurant-violations/' #PUT YOUR DIRECTORY HERE
 
 CONF = SparkConf()\
 		.setMaster("local")\
 		.setAppName("violation staging")\
 		.set("spark.executor.memory", "3g")
 
-# KEY = 
-# SECRET_KEY = 
+S3PATH = "s3n://nyc-restaurant-violations/"
 
-#S3PATH = 
 
 
 def collectResult(func):
@@ -124,7 +121,7 @@ if __name__=="__main__":
 
 	# GET ALL RESTAURANTS WITH AT LEAST 1 INSPECTION in 2012
 
-	res = WebRDD(sc, "WebExtract.txt")\
+	res = WebRDD(sc, S3PATH+"WebExtract.txt")\
 			.getViolationsYr()\
 			.filter(lambda x: x[1]>0)\
 			.collect()
@@ -148,4 +145,4 @@ if __name__=="__main__":
 	dat['grade'] = dat['grade'].map(
 		lambda x: 'P' if x=='Z' else x)
 
-	dat.to_csv('NYC_violations.csv')
+	dat.to_csv('output/NYC_violations.csv')

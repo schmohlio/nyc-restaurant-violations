@@ -23,8 +23,7 @@ class LocuApi(object):
 	def _set_credentials(cls):
 
 		error = None
-		#new_key = os.environ["LOCU_API_KEY"]
-		new_key='d4308ad22909b15626c3c595c5ff24eff73b8aa8'
+		new_key = os.environ["LOCU_API_KEY"]
 
 		if cls.api_key=='' or cls.api_key!=new_key:
 			cls.api_key = new_key
