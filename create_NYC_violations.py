@@ -1,15 +1,18 @@
+#!/usr/bin/env python 
+
+# make sure to append /lib to PYTHONPATH, or uncomment:
+
+# import sys
+# sys.path.append('/home/matthew/nyc-restaurant-violations/lib/')
+
+from sparkDecorators import *
 from pyspark import SparkContext, SparkConf
 
-import sys
 import operator as op
-import csv
 from time import sleep
-import os
 from datetime import datetime as dt 
 
-import pandas as pd
-
-DIR = '/nyc-restaurant-violations/' #PUT YOUR DIRECTORY HERE
+DIR = '/home/matthew/nyc-restaurant-violations/' #PUT YOUR DIRECTORY HERE
 
 CONF = SparkConf()\
 		.setMaster("local")\
@@ -17,42 +20,6 @@ CONF = SparkConf()\
 		.set("spark.executor.memory", "3g")
 
 S3PATH = "s3n://nyc-restaurant-violations/"
-
-
-
-def collectResult(func):
-	""" decorator to collect() an RDD """
-	def SparkJob(*args):
-		return func(*args).collect()
-	return SparkJob
-
-def cacheResult(func):
-	""" decorator to collect() an RDD """
-	def SparkJob(*args):
-		return func(*args).cache()
-	return SparkJob
-
-def parseVector(lin, delimiter=","):
-	#return np.array([i for i in csv.reader([lin])][0])
-	return tuple([i for i in csv.reader([lin])][0])
-
-
-class WriteRDD(object):
-	""" decorator class with functions to
-		write to a specific path """
-	def __init__(self, path):
-
-		self.path = path 
-
-	def __call__(self, func):
-
-		#func_nm = func.__name__
-		#print '\n\t'+'write_start_time: '+datetime.now.__str__()
-
-		def func_call(*args):
-			return func(*args).saveAsTextFile(self.path)
-
-		return func_call
 
 
 class WebRDD(object):
@@ -119,13 +86,14 @@ if __name__=="__main__":
 
 	sc = SparkContext(conf = CONF)
 
-	# GET ALL RESTAURANTS WITH AT LEAST 1 INSPECTION in 2012
-
+	# GET ALL RESTAURANTS WITH AT LEAST 
+	# 1 INSPECTION in 2012
 	res = WebRDD(sc, S3PATH+"WebExtract.txt")\
 			.getViolationsYr()\
 			.filter(lambda x: x[1]>0)\
 			.collect()
 
+	# WRITE TO FILE
 	res = [{'biz':i[0],
             'phone_num':i[1],
 			'inspections_in_2012':i[2],
@@ -135,14 +103,9 @@ if __name__=="__main__":
 			'grade':i[6]}
 	   		for i in res]
 
-	dat = pd.DataFrame(res)
-	
-	dat['violations_per_inspection'] = dat['violations_in_2013']\
-										/dat['inspections_in_2013']
 
-	dat = dat[dat['grade']!='']
-
-	dat['grade'] = dat['grade'].map(
-		lambda x: 'P' if x=='Z' else x)
-
-	dat.to_csv('output/NYC_violations.csv')
+	keys = res[0].keys()
+	f = open(DIR+'output/NYC_violations.csv', 'wb')
+	dict_writer = csv.DictWriter(f, keys)
+	dict_writer.writer.writerow(keys)
+	dict_writer.writerows(res)

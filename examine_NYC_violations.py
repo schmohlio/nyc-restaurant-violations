@@ -6,11 +6,10 @@
 ####
 
 
-import locu as loc
+import locu as loc # make sure to append /lib to PYTHONPATH
 
 import pandas as pd
 import numpy as np
-
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 from statsmodels.formula.api import ols
@@ -23,6 +22,7 @@ DIR = '/nyc-restaurant-violations/' #PUT YOUR DIRECTORY HERE
 if __name__=="__main__":
 
 
+	# IMPORT OUTPUT FROM SPARK
 	try:
 		dat = pd.read_csv(DIR+'output/NYC_violations.csv')
 	except:
@@ -31,7 +31,17 @@ if __name__=="__main__":
 		raise e 
 
 
+
 	# HOW DO GRADES INTERACT WITH VIOLATIONS IN 2013?
+
+	dat['violations_per_inspection'] = dat['violations_in_2013']\
+										/dat['inspections_in_2013']
+
+	dat = dat[dat['grade']!='']
+
+	dat['grade'] = dat['grade'].map(
+		lambda x: 'P' if x=='Z' else x)
+
 
 	dat['violations_in_2013'].hist(by=dat['grade'], histtype='stepfilled', alpha=.85, bins=30,
 	                                                        color="#A60628", normed=True)
@@ -47,6 +57,8 @@ if __name__=="__main__":
 	table1 = anova_lm(viols_lm)
 	print table1
 	print viols_lm.summary()
+
+
 
 	# WHERE ARE THE RESTAURANTS WITH THE 
 	# MOST VIOLATIONS PER INSPECTION LOCATED?
